@@ -42,6 +42,7 @@ import org.apache.hadoop.hive.serde2.objectinspector.primitive.ShortObjectInspec
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.StringObjectInspector;
 import org.apache.hadoop.hive.serde2.typeinfo.StructTypeInfo;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.BytesWritable;
 import org.openx.data.jsonserde.json.JSONArray;
 import org.openx.data.jsonserde.json.JSONException;
 import org.openx.data.jsonserde.json.JSONObject;
@@ -149,7 +150,15 @@ public class JsonSerDe implements SerDe {
      */
     @Override
     public Object deserialize(Writable w) throws SerDeException {
-        Text rowText = (Text) w;
+        Text rowText = null;
+        if (w instanceof BytesWritable) {
+          Text textFromBytesWritable = new Text();
+          textFromBytesWritable.set(((BytesWritable) w).getBytes());
+          rowText = textFromBytesWritable;
+        } else {
+          rowText = (Text) w;
+        }
+
         deserializedDataSize = rowText.getBytes().length;
 	
         // Try parsing row into JSON object
